@@ -1,0 +1,47 @@
+# ray_cluster.yaml
+# Head node configuration
+head_node:
+    # Setup commands to install Python 3.11.11 and Ray
+    setup_commands:
+        - "curl https://www.python.org/ftp/python/3.11.11/Python-3.11.11.tgz -o Python-3.11.11.tgz"
+        - "tar -xzf Python-3.11.11.tgz"
+        - "cd Python-3.11.11 && ./configure && make && sudo make install"
+        - "python3.11 -m venv /home/ubuntu/venv"
+        - "source /home/ubuntu/venv/bin/activate && pip install ray==2.40.0"
+    ray_start_params:
+        # Use Python 3.11 for Ray
+        --python /usr/bin/python3.11
+# Worker nodes configuration
+worker_nodes:
+    # Setup commands for worker nodes to match head node
+    setup_commands:
+        - "curl https://www.python.org/ftp/python/3.11.11/Python-3.11.11.tgz -o Python-3.11.11.tgz"
+        - "tar -xzf Python-3.11.11.tgz"
+        - "cd Python-3.11.11 && ./configure && make && sudo make install"
+        - "python3.11 -m venv /home/ubuntu/venv"
+        - "source /home/ubuntu/venv/bin/activate && pip install ray==2.40.0"
+    ray_start_params:
+        --python /usr/bin/python3.11
+# You can also add additional configuration for autoscaling, environment setup, etc.
+
+
+
+
+
+
+
+
+
+
+
+Message Udén
+
+
+
+
+
+
+
+
+
+Shift + Return to add
