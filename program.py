@@ -2,6 +2,7 @@ import ray
 import os
 import csv
 import requests
+import datetime
 import matplotlib.pyplot as plt
 import subprocess
 import json
@@ -13,18 +14,42 @@ directory_name = 'outputs'
 img_directory_name = os.path.join(directory_name, 'img')
 
 # Ensure directories exist
-os.makedirs(directory_name, exist_ok=True)
-os.makedirs(img_directory_name, exist_ok=True)
+try:
+    os.makedirs(directory_name)
+    print(f"Directory '{directory_name}' created.")
+except FileExistsError:
+    print(f"Directory '{directory_name}' already exists.")
+except PermissionError:
+    print(f"Permission denied: Unable to create '{directory_name}'.")
+
+try:
+    os.makedirs(img_directory_name)
+    print(f"Directory '{img_directory_name}' created.")
+except FileExistsError:
+    print(f"Directory '{img_directory_name}' already exists.")
+except PermissionError:
+    print(f"Permission denied: Unable to create '{img_directory_name}'.")
 
 # Weather API setup
 API_KEY = '6b20f3c4270947378aa113121252101'
 BASE_URL = 'http://api.weatherapi.com/v1/current.json'
-city = 'Gothenburg'
+city = str(input("Ange en stad: "))
 url = f"{BASE_URL}?key={API_KEY}&q={city}"
 
 response = requests.get(url)
-if response.status_code != 200:
-    print(f"Failed to fetch weather data: {response.status_code}")
+if response.status_code == 200:
+    print("Success!")
+elif response.status_code == 400:
+    print("Bad request! Check your parameters.")
+    raise SystemExit
+elif response.status_code == 403:
+    print("Unauthorized! Check your API key.")
+    raise SystemExit
+elif response.status_code == 404:
+    print("Not found! Check your BASE_URL.")
+    raise SystemExit
+else:
+    print(f"Error: {response.status_code}")
     raise SystemExit
 
 weather_data = response.json()
@@ -34,6 +59,7 @@ location = weather_data['location']['name']
 country = weather_data['location']['country']
 wind_kph = weather_data['current']['wind_kph']
 humidity = weather_data['current']['humidity']
+current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Plot weather data
 def create_weather_plot():
@@ -70,14 +96,16 @@ def create_html_file(directory_name):
             <title>Weather Report</title>
         </head>
         <body>
-            <h1>Weather Data for {location}, {country}</h1>
+            <h1>Weather Data for {location}, {country} {current_time}</h1>
             <p><strong>Temperature:</strong> {temp_c}°C</p>
             <p><strong>Condition:</strong> {condition}</p>
             <p><strong>Wind Speed:</strong> {wind_kph} kph</p>
             <p><strong>Humidity:</strong> {humidity}%</p>
             <h2>Weather Charts</h2>
-            <img src="img/bar_chart.png" alt="Bar Chart">
-            <img src="img/line_graph.png" alt="Line Graph">
+            <h3>Bar Chart</h3>
+            <img src="img/bar_chart.png" alt="Bar Chart of Weather Data">
+            <h3>Line Graph</h3>
+            <img src="img/line_graph.png" alt="Line Graph of Weather Data">
         </body>
         </html>
         """
@@ -93,7 +121,8 @@ def create_csv_file(directory_name, choice, num_records):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            cwd="scripts"  # Set the working directory to "scripts"
         )
         stdout, stderr = generator_process.communicate(input=user_input)
 
